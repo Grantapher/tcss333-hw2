@@ -76,8 +76,6 @@ int main(int argc, char** args) {
     unsigned char* previousMatrix = malloc(matrixSize);
     fread(previousMatrix, 1, matrixSize, in);
    
-    printImageHex(previousMatrix, *width, *height);
-    
     unsigned char* nextMatrix;
     if(shrink){
         nextMatrix = malloc(matrixSize / 4);
@@ -114,8 +112,6 @@ int main(int argc, char** args) {
         *height *= 2;
     }
     *imageSize = *width * *height * 3;
-
-    printImageHex(nextMatrix, *width, *height);
 
     out = fopen("expanded.bmp", "w");
     fwrite(header, 1, 14, out);
