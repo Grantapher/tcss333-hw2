@@ -11,40 +11,6 @@ void formatFail() {
     fail("Format: ./granttoe_hw2 (shrink|expand) <bmp file>\n", 2);
 }
 
-void printHex(unsigned char* str, unsigned char size) {
-    int i;
-    for(i = 0; i < size; i++) {
-        printf("%02x ", *(str + i));
-    }
-    printf("\n");
-}
-
-unsigned int swapEndianInt(unsigned int little) {
-    return (little >> 24)
-         | ((little >> 8) && 0x0000ff00)
-         | ((little << 8) && 0x00ff0000)
-         | (little << 24);
-}
-
-unsigned int swapEndianShort(unsigned short little) {
-    return (little >> 8) 
-         | (little << 8);
-}
-
-void printImageHex(unsigned char* image, unsigned int width, unsigned int height) {
-    int i, j, k;
-    for(i = height - 1; i >= 0; i--) {
-        for(j = 0; j < width * 3; j += 3) {
-            for(k = 2; k >= 0; k--) {
-                printf("%02x", image [(i * width * 3) + j + k]);
-            }
-            printf(" ");
-        }
-        printf("\n");
-    }
-    printf("\n\n");
-}
-
 int main(int argc, char** args) {
     if(argc != 3) formatFail();
 
@@ -67,15 +33,17 @@ int main(int argc, char** args) {
     unsigned char* info = (unsigned char*) malloc(40);
     fread(info, 1, 40, in);
 
-    unsigned int* filesize = header + 2;
-    unsigned int* width = info + 4;
-    unsigned int* height = info + 8;
-    unsigned int* imageSize = info + 20;
+    unsigned int* filesize = (unsigned int*) header + 2;
+    unsigned int* width = (unsigned int*) info + 4;
+    unsigned int* height = (unsigned int*) info + 8;
+    unsigned int* imageSize = (unsigned int*) info + 20;
 
     unsigned int matrixSize = *filesize - 54;
     unsigned char* previousMatrix = malloc(matrixSize);
     fread(previousMatrix, 1, matrixSize, in);
-   
+  
+    fclose(in);
+
     unsigned char* nextMatrix;
     if(shrink){
         nextMatrix = malloc(matrixSize / 4);
@@ -112,18 +80,20 @@ int main(int argc, char** args) {
         *height *= 2;
     }
     *imageSize = *width * *height * 3;
+    free(previousMatrix);
 
     out = fopen("expanded.bmp", "w");
     fwrite(header, 1, 14, out);
-    fwrite(info, 1, 40, out);
-    fwrite(nextMatrix, 1, *imageSize, out);
-
-    
     free(header);
+    
+    fwrite(info, 1, 40, out);
     free(info);
-    free(previousMatrix);
+    
+    fwrite(nextMatrix, 1, *imageSize, out);
+    free(nextMatrix);
+
     fclose(out);
-    fclose(in);
+ 
     printf("Success!\n");
     return 0;
 }
