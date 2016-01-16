@@ -33,10 +33,10 @@ int main(int argc, char** args) {
     unsigned char* info = (unsigned char*) malloc(40);
     fread(info, 1, 40, in);
 
-    unsigned int* filesize = (unsigned int*) header + 2;
-    unsigned int* width = (unsigned int*) info + 4;
-    unsigned int* height = (unsigned int*) info + 8;
-    unsigned int* imageSize = (unsigned int*) info + 20;
+    unsigned int* filesize = (unsigned int*) (header + 2);
+    unsigned int* width = (unsigned int*) (info + 4);
+    unsigned int* height = (unsigned int*) (info + 8);
+    unsigned int* imageSize = (unsigned int*) (info + 20);
 
     unsigned int matrixSize = *filesize - 54;
     unsigned char* previousMatrix = malloc(matrixSize);
@@ -80,16 +80,23 @@ int main(int argc, char** args) {
         *height *= 2;
     }
     *imageSize = *width * *height * 3;
+    int writeCount = *imageSize;
     free(previousMatrix);
 
-    out = fopen("expanded.bmp", "w");
-    fwrite(header, 1, 14, out);
+    out = fopen("altered.bmp", "w");
+    if(14 != fwrite(header, 1, 14, out)) {
+        fail("First header failed to write!", 4);
+    }
     free(header);
     
-    fwrite(info, 1, 40, out);
+    if(40 != fwrite(info, 1, 40, out)) {
+        fail("Second header failed to write!", 6);
+    }
     free(info);
     
-    fwrite(nextMatrix, 1, *imageSize, out);
+    if(writeCount != fwrite(nextMatrix, 1, writeCount, out)) {
+        printf("Pixels failed to write!", 5);
+    }
     free(nextMatrix);
 
     fclose(out);
