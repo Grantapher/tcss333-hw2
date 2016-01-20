@@ -27,17 +27,19 @@ int main(int argc, char** args) {
     in = fopen(args[2], "r");
     if (NULL == in) fail("Bad .bmp file!", 3);
     
+    // Read headers
     unsigned char* header = (unsigned char*) malloc(14);
     fread(header, 1, 14, in);
-
     unsigned char* info = (unsigned char*) malloc(40);
     fread(info, 1, 40, in);
 
+    // Place header field pointers
     unsigned int* filesize = (unsigned int*) (header + 2);
     unsigned int* width = (unsigned int*) (info + 4);
     unsigned int* height = (unsigned int*) (info + 8);
     unsigned int* imageSize = (unsigned int*) (info + 20);
 
+    // Read pixel data
     unsigned int matrixSize = *filesize - 54;
     unsigned char* previousMatrix = malloc(matrixSize);
     fread(previousMatrix, 1, matrixSize, in);
@@ -45,14 +47,15 @@ int main(int argc, char** args) {
     fclose(in);
 
     unsigned char* nextMatrix;
+    int i, j, k, rowWidth = *width * 3, colorWidth = 3;
     if(shrink){
+        // Look at every other column and row and write each
         nextMatrix = malloc(matrixSize / 4);
-        int i, j, k, rowWidth = *width * 3, colorWidth = 3;
         for(i = 0; i < *height; i+= 2) {
             for(j = 0; j < *width; j += 2) {
                 for(k = 0; k < 3; k++) {
                     unsigned char current = previousMatrix[i * rowWidth + j * colorWidth + k];
-                    nextMatrix[i / 2 * rowWidth / 2 + j / 2 * colorWidth + k] = current;            // bottom-left  
+                    nextMatrix[i * rowWidth / 4 + j * colorWidth / 2 + k] = current;    // bottom-left  
                 }
             }
         }
@@ -61,15 +64,15 @@ int main(int argc, char** args) {
         *width /= 2;
         *height /= 2;
     } else {
+        // Look at every cell and write four new cells
         nextMatrix = malloc(4 * matrixSize);
-        int i, j, k, rowWidth = *width * 3, colorWidth = 3;
         for(i = 0; i < *height; i++) {
             for(j = 0; j < *width; j++) {
                 for(k = 0; k < 3; k++) {
                     unsigned char current = previousMatrix[i * rowWidth + j * colorWidth + k];
-                    nextMatrix[i * 2 * rowWidth * 2 + j * 2 * colorWidth + k] = current;            // bottom-left  
+                    nextMatrix[i * rowWidth * 4 + j * colorWidth * 2 + k] = current;                // bottom-left  
                     nextMatrix[(i * 2 + 1) * rowWidth * 2 + j * 2 * colorWidth + k] = current;      // top-left
-                    nextMatrix[i * 2 * rowWidth * 2 + (j * 2 + 1) * colorWidth + k] = current;      // bottom-right
+                    nextMatrix[i * rowWidth * 4 + (j * 2 + 1) * colorWidth + k] = current;          // bottom-right
                     nextMatrix[(i * 2 + 1) * rowWidth * 2 + (j * 2 + 1) * colorWidth + k] = current;// top-right
                 }
             }
@@ -83,6 +86,7 @@ int main(int argc, char** args) {
     int writeCount = *imageSize;
     free(previousMatrix);
 
+    // Write all the pieces
     out = fopen("altered.bmp", "w");
     if(14 != fwrite(header, 1, 14, out)) {
         fail("First header failed to write!", 4);
