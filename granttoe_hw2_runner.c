@@ -3,14 +3,20 @@
 
 int main(int argc, char** args) {
 
-    if(argc != 2) exit(1);
+    if(argc != 2) {
+        printf("Format: ./granttoe_hw2_runner <input .bmp>\n");       
+        exit(10);
+    }
+
     char str[256];
-    
-    sprintf(str, "./granttoe_hw2 shrink %s small.bmp", args[1]);
-    system(str);
+    int returnCode;
 
-    sprintf(str, "./granttoe_hw2 expand %s big.bmp", args[1]);
-    system(str);
+    sprintf(str, "./granttoe_hw2 shrink \"%s\" small.bmp", args[1]);
+    if(0 != (returnCode = system(str))) exit(returnCode);
 
+    sprintf(str, "./granttoe_hw2 expand \"%s\" big.bmp", args[1]);
+    if(0 != (returnCode = system(str))) exit(returnCode);
+
+    printf("Both files created successfully!\n");
     return 0;
 }
