@@ -8,11 +8,11 @@ void fail(char* message, int code) {
 }
 
 void formatFail() {
-    fail("Format: ./granttoe_hw2 (shrink|expand) <bmp file>\n", 2);
+    fail("Format: ./granttoe_hw2 (shrink|expand) <input .bmp> <output .bmp>\n", 2);
 }
 
 int main(int argc, char** args) {
-    if(argc != 3) formatFail();
+    if(argc != 4) formatFail();
 
     int shrink; 
     if(!strcmp("shrink", args[1])) {
@@ -25,7 +25,10 @@ int main(int argc, char** args) {
 
     FILE *in, *out;
     in = fopen(args[2], "r");
-    if (NULL == in) fail("Bad .bmp file!", 3);
+    if (NULL == in) fail("Bad input .bmp file!", 3);
+    
+    out = fopen(args[3], "w");
+    if (NULL == out) fail("Bad output .bmp file!", 3);
     
     // Read headers
     unsigned char* header = (unsigned char*) malloc(14);
@@ -87,7 +90,6 @@ int main(int argc, char** args) {
     free(previousMatrix);
 
     // Write all the pieces
-    out = fopen("altered.bmp", "w");
     if(14 != fwrite(header, 1, 14, out)) {
         fail("First header failed to write!", 4);
     }
@@ -105,7 +107,7 @@ int main(int argc, char** args) {
 
     fclose(out);
  
-    printf("Success!\n");
+    printf("Success! %s %s into %s!\n", args[2], shrink ? "shrunk" : "expanded", args[3]);
     return 0;
 }
 
