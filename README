@@ -1,0 +1,18 @@
+Grant Toepfer
+HW2
+TCSS 333
+README
+
+I have included a makefile to make two C programs.
+
+granttoe_hw2 is the program I made and contains the functionality to
+shrink or expand a bmp file, it is functional on it's own.
+
+granttoe_hw2_runner is a program that runs granttoe_hw2 to the 
+specification given (creating "small.bmp" and "big.bmp") by
+simply running granttoe_hw2 twice.
+
+To run this, type:
+
+make
+./granttoe_hw2_runner <your test .bmp file>
